@@ -1,14 +1,15 @@
 <template>
   <div>
     <div v-if="thinkText.length > 1" id="think-div" class="dialog-textarea think-color">{{ thinkText }}</div>
-    <textarea :readonly="!isInputMode" name="dialog-textarea" id="dialog-textarea" class="dialog-textarea"
+    <div v-if="responseText && !isInputMode" id="response-div" class="dialog-textarea">{{ responseText }}</div>
+    <textarea v-show="isInputMode" name="dialog-textarea" id="dialog-textarea" class="dialog-textarea"
       v-model="dialogText" @keyup="sendTextToWS" ref="textareaRef"></textarea>
     <CaretSprite :textarea="textareaRef" :text="dialogText" :visible="isInputMode" :size="44" />
   </div>
 </template>
 
 <script setup lang="js">
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, watch, onMounted, nextTick } from 'vue'
 import CaretSprite from './CaretSprite.vue'
 
 const props = defineProps({
@@ -29,6 +30,7 @@ const props = defineProps({
 const emit = defineEmits(['send'])
 
 const dialogText = ref('')
+const responseText = ref('')
 const textareaRef = ref()
 
 function sendTextToWS(e) {
@@ -42,22 +44,28 @@ function sendTextToWS(e) {
   }
 }
 
+watch(() => props.isInputMode, (newVal) => {
+  if (newVal) {
+    dialogText.value = ''
+    responseText.value = ''
+  }
+})
+
 async function processTextQueue() {
   while (true) {
     if (props.isInputMode) {
-      await new Promise(resolve => setTimeout(resolve, 100)); // 等待100ms再检查
-      continue;
+      await new Promise(resolve => setTimeout(resolve, 100))
+      continue
     }
-    await nextTick(); // 等待下一帧，防止阻塞
-    // 取出所有字符并筛选
-    const filtered = props.textQueue.filter(ch => ch !== '\n' && ch.trim() !== '');
-    dialogText.value = filtered.join('');
-    await new Promise(resolve => setTimeout(resolve, 100)); // 100ms轮询
+    await nextTick()
+    const filtered = props.textQueue.filter(ch => ch !== '\n' && ch.trim() !== '')
+    responseText.value = filtered.join('')
+    await new Promise(resolve => setTimeout(resolve, 100))
   }
 }
 
 onMounted(() => {
-  processTextQueue();
+  processTextQueue()
 })
 </script>
 

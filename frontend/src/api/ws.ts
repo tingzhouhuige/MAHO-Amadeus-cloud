@@ -3,32 +3,33 @@ import config from '../config.json'
 type MessageHandler = (data: any) => void
 type EventHandler = () => void
 
-// WebSocket通信封装类，支持事件/消息回调注册
 export class MahoWebSocket {
   private ws: WebSocket | null = null
   private url: string
   private reconnectTimer: number | null = null
+  private pendingMessages: any[] = []
   private messageHandlers: Map<string, MessageHandler[]> = new Map()
   private eventHandlers: Map<string, EventHandler[]> = new Map()
 
   constructor() {
     this.url = `ws://${config.ip}:8080/ws`
-    this.connect() // 实例化时自动连接
+    this.connect()
   }
 
-  // 建立WebSocket连接
   private connect() {
+    if (this.ws && this.ws.readyState !== WebSocket.CLOSED) return
     this.ws = new WebSocket(this.url)
     this.bindEvents()
   }
 
-  // 绑定WebSocket原生事件，转发为自定义回调
   private bindEvents() {
     if (!this.ws) return
+    this.triggerEvent('connecting')
 
     this.ws.onopen = () => {
-      console.log('WebSocket连接已建立', this.ws?.url)
-      this.triggerEvent('open') // 触发open事件回调
+      console.log('WebSocket connected:', this.ws?.url)
+      this.triggerEvent('open')
+      this.flushPendingMessages()
       if (this.reconnectTimer) {
         clearInterval(this.reconnectTimer)
         this.reconnectTimer = null
@@ -38,14 +39,14 @@ export class MahoWebSocket {
     this.ws.onmessage = (event) => {
       try {
         const msg = JSON.parse(event.data)
-        this.triggerMessage(msg.type, msg) // 按type分发消息
+        this.triggerMessage(msg.type, msg)
       } catch (e) {
-        console.error('WS消息解析失败', e)
+        console.error('Failed to parse WS message', e)
       }
     }
 
     this.ws.onclose = () => {
-      this.triggerEvent('close') // 触发close事件回调
+      this.triggerEvent('close')
       this.reconnect()
     }
 
@@ -55,53 +56,58 @@ export class MahoWebSocket {
     }
   }
 
-  // 自动重连机制
   private reconnect() {
-    if (this.ws?.readyState === WebSocket.OPEN) return
+    if (this.ws?.readyState === WebSocket.OPEN || this.ws?.readyState === WebSocket.CONNECTING) return
     if (this.reconnectTimer) return
 
     this.reconnectTimer = window.setInterval(() => {
       if (!this.ws || this.ws.readyState === WebSocket.CLOSED) {
-        console.log('尝试重新连接WebSocket...')
+        console.log('Reconnecting WebSocket...')
         this.connect()
       }
-    }, 3000)
+    }, 1000)
   }
 
-  // 发送消息到后端
   public send(data: any) {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(data))
-    } else {
-      console.warn('WebSocket未连接，无法发送消息')
+      return
     }
+    this.pendingMessages.push(data)
+    this.reconnect()
+    console.warn('WebSocket not open yet; queued message')
   }
 
-  /**
-   * 注册事件/消息回调
-   * @param event 事件名（open/close/error/text/audio等）
-   * @param callback 回调函数
-   * 用法：ws.on('text', msg => { ... })
-   */
+  private flushPendingMessages() {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return
+    const messages = this.pendingMessages.splice(0)
+    messages.forEach(data => this.ws?.send(JSON.stringify(data)))
+  }
+
   public on(event: string, callback: MessageHandler | EventHandler) {
-    if (['open', 'close', 'error'].includes(event)) {
+    if (['connecting', 'open', 'close', 'error'].includes(event)) {
       if (!this.eventHandlers.has(event)) {
         this.eventHandlers.set(event, [])
       }
       this.eventHandlers.get(event)?.push(callback as EventHandler)
-    } else {
-      if (!this.messageHandlers.has(event)) {
-        this.messageHandlers.set(event, [])
+
+      if (event === 'open' && this.ws?.readyState === WebSocket.OPEN) {
+        window.setTimeout(() => (callback as EventHandler)(), 0)
       }
-      this.messageHandlers.get(event)?.push(callback as MessageHandler)
+      if (event === 'connecting' && this.ws?.readyState === WebSocket.CONNECTING) {
+        window.setTimeout(() => (callback as EventHandler)(), 0)
+      }
+      return
     }
+
+    if (!this.messageHandlers.has(event)) {
+      this.messageHandlers.set(event, [])
+    }
+    this.messageHandlers.get(event)?.push(callback as MessageHandler)
   }
 
   private triggerEvent(event: string) {
-    const handlers = this.eventHandlers.get(event)
-    if (handlers) {
-      handlers.forEach(handler => handler())
-    }
+    this.eventHandlers.get(event)?.forEach(handler => handler())
   }
 
   private triggerMessage(type: string, data: any) {
@@ -109,7 +115,7 @@ export class MahoWebSocket {
     if (handlers) {
       handlers.forEach(handler => handler(data))
     } else {
-      console.warn('未知的消息类型:', type, data)
+      console.warn('Unknown WS message type:', type, data)
     }
   }
 }

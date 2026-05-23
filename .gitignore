@@ -1,5 +1,7 @@
 # 忽略LLM-Maho模型文件夹和模型文件
 Modeltmp/
+.runtime/
+-w
 
 # -------------------
 # Python / Backend
@@ -14,6 +16,8 @@ ENV/
 env/
 .env
 *.log
+*.out
+*.err
 .pytest_cache/
 .coverage
 htmlcov/
@@ -23,6 +27,10 @@ build/
 backend/models/*
 !backend/models/.gitkeep
 backend/data/config.yaml
+backend/*.log
+backend/*.out
+backend/*.txt
+backend/????????
 
 # -------------------
 # Node / Frontend (Global safeguards)
@@ -31,6 +39,8 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 pnpm-debug.log*
+frontend/*.out
+frontend/dist/
 
 # -------------------
 # OS / IDE

@@ -1,99 +1,101 @@
+import os
+os.environ["ORT_DISABLE_ALL"] = "1"
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+os.environ.setdefault("OMP_NUM_THREADS", "1")
+os.environ.setdefault("MKL_NUM_THREADS", "1")
+os.environ.setdefault("NUMEXPR_NUM_THREADS", "1")
+
+import asyncio
+import colorlog
+import logging
+import uvicorn
 from fastapi import FastAPI, WebSocket, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from core.handler.ws_handler import WSHandler
+
 from core.Amadeus import BaseAmadeus
 from core.auth.login import AuthManager
-import uvicorn
-import logging
-import colorlog
+from core.handler.ws_handler import WSHandler
 
-# 日志配置，只需在主文件配置一次即可
 handler = colorlog.StreamHandler()
 handler.setFormatter(colorlog.ColoredFormatter(
-    '%(log_color)s%(asctime)s %(levelname)s [%(pathname)s] %(message)s',
+    "%(log_color)s%(asctime)s %(levelname)s [%(pathname)s] %(message)s",
     log_colors={
-        'DEBUG': 'cyan',
-        'INFO': 'green',
-        'WARNING': 'yellow',
-        'ERROR': 'red',
-        'CRITICAL': 'red,bg_white',
-    }
+        "DEBUG": "cyan",
+        "INFO": "green",
+        "WARNING": "yellow",
+        "ERROR": "red",
+        "CRITICAL": "red,bg_white",
+    },
 ))
 
-logging.basicConfig(
-    level=logging.INFO,
-    handlers=[handler]
-)
+logging.basicConfig(level=logging.INFO, handlers=[handler])
 
 app = FastAPI()
-
-# 添加 CORS 中间件，允许前端跨域请求
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 生产环境请修改为具体域名
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# 实例化认证管理器
 auth_manager = AuthManager()
+ws_handler = WSHandler()
+shared_amadeus = BaseAmadeus()
 
-# 请求体模型
+
 class LoginRequest(BaseModel):
     username: str
     password: str
 
+
 class VerifyRequest(BaseModel):
     token: str
 
-ws_handler = WSHandler()
+
+@app.on_event("startup")
+async def warmup_tts():
+    async def _warm():
+        try:
+            logging.info("warming up TTS")
+            await asyncio.to_thread(shared_amadeus.get_tts)
+            logging.info("TTS warmup complete")
+        except Exception as exc:
+            logging.error("TTS warmup failed: %r", exc)
+
+    asyncio.create_task(_warm())
+
 
 @app.post("/api/login")
 async def login(request: LoginRequest):
-    """
-    用户登录接口
-    """
     if auth_manager.verify_user(request.username, request.password):
         token = auth_manager.pack_token(request.username)
-        logging.info(f"用户 {request.username} 登录成功")
-        return {
-            "success": True,
-            "token": token,
-            "username": request.username
-        }
-    else:
-        logging.warning(f"用户 {request.username} 登录失败")
-        raise HTTPException(status_code=401, detail="用户名或密码错误")
+        logging.info("user %s logged in", request.username)
+        return {"success": True, "token": token, "username": request.username}
+    logging.warning("user %s login failed", request.username)
+    raise HTTPException(status_code=401, detail="用户名或密码错误")
+
 
 @app.post("/api/verify")
 async def verify_token(request: VerifyRequest):
-    """
-    验证 token 有效性接口
-    """
     user_info = auth_manager.verify_token(request.token)
     if user_info:
-        return {
-            "valid": True,
-            "username": user_info.get("username")
-        }
-    else:
-        raise HTTPException(status_code=401, detail="Token 无效")
+        return {"valid": True, "username": user_info.get("username")}
+    raise HTTPException(status_code=401, detail="Token 无效")
+
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    # 为每个连接创建一个独立的 Amadeus 实例，确保用户隔离
-    Amadeus = BaseAmadeus()
-    await ws_handler.handle_ws(websocket, Amadeus)
+    await ws_handler.handle_ws(websocket, shared_amadeus)
+
 
 if __name__ == "__main__":
     uvicorn.run(
-        "main:app", 
-        host="0.0.0.0", 
-        port=8080, 
+        "main:app",
+        host="0.0.0.0",
+        port=8080,
         reload=False,
-        ws_ping_interval=300,  # 设置心跳间隔为 300 秒
-        ws_ping_timeout=300    # 设置心跳超时为 300 秒
+        ws_ping_interval=300,
+        ws_ping_timeout=300,
     )
-    # uvicorn backend.main:app --host 0.0.0.0 --port 8000 --workers 4

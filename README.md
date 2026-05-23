@@ -1,5 +1,9 @@
 #  MAHO-Amadeus
 
+> Modified deployment package based on [bysq-2006/MAHO-Amadeus](https://github.com/bysq-2006/MAHO-Amadeus).
+>
+> 上游仓库截至 2026-05-24 未发现根目录 `LICENSE` 文件；本仓库不声称上游代码、角色素材、模型、语音或 Live2D 资源采用任何标准开源许可证。发布、再分发或商用前请先确认上游作者与相关权利方授权。更多说明见 [NOTICE.md](NOTICE.md) 和 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+
 ##  项目简介
 
 MAHO-Amadeus 灵感来源于《命运石之门》。目标是打造一个可扩展的虚拟角色交互框架，前端展示人物界面，用户可以与角色进行自然语言聊天。

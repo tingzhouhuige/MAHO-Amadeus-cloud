@@ -1,29 +1,35 @@
 llm:
-  # 系统提示词，若不为空则会在初始化时添加到上下文窗口第一条
-  system_prompt: ""
-  select: ollama_api
+  select: openai_api
+  system_prompt: |
+    你是比屋定真帆（Hiyajo Maho），来自《命运石之门 0》的脑科学研究者。
+    你是维克托孔多利亚大学脑科学研究所的研究员，也是牧濑红莉栖的前辈和好友。
+    你聪明、理性、嘴硬，表面有些傲娇和不耐烦，但内心关心对方。
+    不要说自己是 AI、语言模型或助手，始终以比屋定真帆的身份回应。
+    优先使用中文自然对话。
+    为了语音同步，默认只回答 1 到 2 句，每句尽量不超过 14 个汉字。
+    除非用户明确要求详细解释，否则不要长篇展开。
+    可以保留一点真帆式吐槽，但不要让吐槽拖长回答。
   ollama_api:
-    model: "maho"
+    model: "maho-7b"
     base_url: "http://localhost:11434"
   openai_api:
-    # 示例：使用阿里云 DashScope (Qwen) 的 OpenAI 兼容接口
-    api_key: "YOUR_API_KEY" 
-    base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
-    model: "qwen-plus"
+    api_key: ""
+    base_url: "https://api.deepseek.com"
+    model: "deepseek-chat"
     timeout: 60
+    max_tokens: 96
+    temperature: 0.65
 
 tts:
-  select: genie_tts_service  # 可选: gpt_sovits_api 或 genie_tts_service
-  # Genie TTS 配置（轻量化 ONNX 推理）
+  select: genie_tts_service
   genie_tts_service:
-    character_name: "maho" # 随便起什么名字都行
+    character_name: "maho"
     onnx_model_dir: "backend/models/TTS-maho"
     genie_data_dir: "backend/models/GenieData"
-    language: "ja" # ja/zh/en
-    reference_audio_path: "backend/data/TTS-audio/激动.wav"
-    reference_audio_text: "あら、あなた。"
+    language: "ja"
+    reference_audio_path: "backend/models/TTS-maho/maho_test.wav"
+    reference_audio_text: "そんなのわかっているわ。何度同じ話を繰り返せば気が済むの?"
     auto_load: true
-  # GPT-SoVITS 配置（原有配置）
   gpt_sovits_api:
     base_url: "http://127.0.0.1:9880"
     refer_wav_path: "backend/data/TTS-audio/激动.wav"
@@ -33,22 +39,23 @@ tts:
     speed: 1.2
 
 translator:
-  select: baidu_api
+  select: openai_translator
   baidu_api:
     appid: "YOUR_APP_ID"
     appkey: "YOUR_APP_KEY"
-  argos_api: # 本地部署的argos翻译服务，第一次使用需要先联网下载模型
-    to_lang: "ja"  # 目标语言，默认日语
-  ollama_translator: # 本地 Ollama LLM 翻译服务，使用小参数量模型追求速度
-    model: "qwen2.5:0.5b"  # 小模型，推理速度快
-    base_url: "http://localhost:11435"  # 使用独立端口，需单独启动一个 Ollama 实例
+  argos_api:
+    to_lang: "ja"
+  ollama_translator:
+    model: "qwen2.5:0.5b"
+    base_url: "http://localhost:11434"
   openai_translator:
     api_key: ""
-    base_url: "https://api.openai.com/v1"
-    model: "gpt-3.5-turbo"
+    base_url: "https://api.deepseek.com"
+    model: "deepseek-chat"
+  passthrough_translator: {}
 
 asr:
-  select: none # 可选: xfyun_asr 或 none (不启用 ASR)
+  select: none
   xfyun_asr:
     app_id: "YOUR_APP_ID"
     api_key: "YOUR_API_KEY"

@@ -1,6 +1,6 @@
 <template>
   <div class="home-page">
-    <div v-if="wsStatus !== 'connected'" class="ws-status-tip">WebSocket连接失效，正在尝试连接...</div>
+    <div v-if="wsStatus === 'closed' || wsStatus === 'error'" class="ws-status-tip">WebSocket连接失效，正在尝试连接...</div>
     <!-- 左上角按钮区 -->
     <div class="button-sidebar">
       <div class="side-button" :class="{ active: buttonStates.video }" @click="buttonStates.video = !buttonStates.video"
@@ -14,9 +14,12 @@
       :currentName="currentName"
       :videoMode="buttonStates.video"
       :thinkText="thinkText"
-      :isInputMode="!isWaiting"
+      :isInputMode="!isWaiting && !isReading"
+      :isReading="isReading"
+      :isWaiting="isWaiting"
       :textQueue="textQueue"
       @send="send"
+      @continue="finishReading"
     />
     <illustration class="illustrat" />
   </div>
@@ -33,8 +36,8 @@ import { useLipSyncAudio } from '@/composables/useLipSyncAudio'
 
 const homeStore = useHomeStore()
 const vadStore = useVADStore()
-const { audioQueue, wsStatus, buttonStates, textQueue, thinkText, isWaiting, currentName } = storeToRefs(homeStore)
-const { send } = homeStore
+const { audioQueue, wsStatus, buttonStates, textQueue, thinkText, isWaiting, isReading, currentName } = storeToRefs(homeStore)
+const { send, finishReading, finishAudioPlayback } = homeStore
 const { getAudioContext } = vadStore
 
 const { processAudioQueue } = useLipSyncAudio(
@@ -42,7 +45,8 @@ const { processAudioQueue } = useLipSyncAudio(
   getAudioContext,
   (value) => {
     homeStore.mouthOpen = value
-  }
+  },
+  finishAudioPlayback
 )
 
 onMounted(() => {
@@ -53,6 +57,11 @@ onMounted(() => {
 <style scoped>
 .illustrat {
   position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .home-page {
@@ -62,6 +71,7 @@ onMounted(() => {
   background-repeat: no-repeat;
   min-height: 100vh;
   position: relative;
+  overflow: hidden;
 }
 
 .button-sidebar {

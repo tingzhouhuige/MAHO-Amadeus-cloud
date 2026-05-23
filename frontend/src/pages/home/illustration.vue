@@ -70,11 +70,23 @@ onMounted(async () => {
     const model = await Live2DModel.from(config.modelPath, {
       autoInteract: autoInteractEnabled
     })
-    model.x = app.screen.width / 2
-    model.y = app.screen.height / 1.8
     model.scale.set(0.4)
     model.anchor.set(0.5, 0.5)
     app.stage.addChild(model)
+
+    function layoutModel() {
+      const viewportWidth = app.screen.width
+      const viewportHeight = app.screen.height
+      const scale = Math.max(0.28, Math.min(0.48, Math.min(viewportWidth / 1280, viewportHeight / 720) * 0.4))
+      model.scale.set(scale)
+      model.x = viewportWidth / 2
+      model.y = viewportHeight * 0.58
+    }
+
+    layoutModel()
+    const resizeLayout = () => layoutModel()
+    window.addEventListener('resize', resizeLayout)
+    listeners.push(() => window.removeEventListener('resize', resizeLayout))
 
     // 获取参数
     const coreModel = model.internalModel.coreModel
@@ -149,3 +161,12 @@ onMounted(async () => {
   })
 })
 </script>
+
+<style scoped>
+.pixi-container {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+</style>

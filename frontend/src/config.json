@@ -1,5 +1,5 @@
 {
-  "ip": "localhost",
+  "ip": "127.0.0.1",
   "amadeusName": "比屋定真帆",
   "modelPath": "/maho-l2d/maho.model3.json"
 }

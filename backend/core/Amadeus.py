@@ -8,26 +8,31 @@ from core.component.asr.ASRService import ASR
 
 
 class BaseAmadeus:
-    """
-        Amadeus核心类，负责初始化和管理核心功能
-    """
-
     def __init__(self):
         config_path = Path("config.yaml")
         self.config = load_yaml(config_path)
         self.llm = LLM(self.config.get("llm", {}))
-        self.tts = TTS(self.config.get("tts", {}))
+        self.tts = None
+        self.tts_ready = False
         self.translator = Translator(self.config.get("translator", {}))
         self.asr = ASR(self.config.get("asr", {}))
 
-        self.message_queue = asyncio.Queue()  # 字符队列
-        self.sentence_queue = asyncio.Queue()  # 句子队列
-        self.user = {}  # 用户信息
-        self.context_window = []  # 上下文窗口
+        self.message_queue = asyncio.Queue()
+        self.sentence_queue = asyncio.Queue()
+        self.tts_lock = asyncio.Lock()
+        self.audio_tasks = set()
+        self.turn_id = 0
+        self.user = {}
+        self.context_window = []
 
-        # 如果配置中有系统提示词，则添加到上下文窗口第一条
         system_prompt = self.config.get("llm", {}).get("system_prompt", "")
         if system_prompt:
             self.context_window.append({"role": "system", "content": system_prompt})
-            
-        self.context_window_index = 0  # 上下文窗口索引，每次前端获取上下文窗口就更新这个索引
+
+        self.context_window_index = 0
+
+    def get_tts(self):
+        if self.tts is None:
+            self.tts = TTS(self.config.get("tts", {}))
+        self.tts_ready = True
+        return self.tts

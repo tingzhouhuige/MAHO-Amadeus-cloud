@@ -16,7 +16,11 @@ class Client:
                 "stream": True,
                 "options": {
                     "num_predict": max_tokens,
-                    "temperature": temperature
+                    "temperature": temperature,
+                    "num_ctx": 1024,
+                    "num_gpu": 12,
+                    "num_batch": 64,
+                    "use_mmap": True
                 }
             }
         else:
@@ -27,7 +31,11 @@ class Client:
                 "stream": True,
                 "options": {
                     "num_predict": max_tokens,
-                    "temperature": temperature
+                    "temperature": temperature,
+                    "num_ctx": 1024,
+                    "num_gpu": 12,
+                    "num_batch": 64,
+                    "use_mmap": True
                 }
             }
 
