@@ -1,141 +1,179 @@
-#  MAHO-Amadeus
+# MAHO-Amadeus Cloud Deployment
 
-> Modified deployment package based on [bysq-2006/MAHO-Amadeus](https://github.com/bysq-2006/MAHO-Amadeus).
->
-> 上游仓库截至 2026-05-24 未发现根目录 `LICENSE` 文件；本仓库不声称上游代码、角色素材、模型、语音或 Live2D 资源采用任何标准开源许可证。发布、再分发或商用前请先确认上游作者与相关权利方授权。更多说明见 [NOTICE.md](NOTICE.md) 和 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+这是一个基于 [bysq-2006/MAHO-Amadeus](https://github.com/bysq-2006/MAHO-Amadeus) 整理的云端大模型部署版本。当前版本把本地大语言模型改为 DeepSeek/OpenAI 兼容接口，保留前端角色交互、Genie TTS 和翻译组件，并加入 Windows 一键启动/停止脚本。
 
-##  项目简介
+## 上游来源与授权声明
 
-MAHO-Amadeus 灵感来源于《命运石之门》。目标是打造一个可扩展的虚拟角色交互框架，前端展示人物界面，用户可以与角色进行自然语言聊天。
-因为是全本地部署，所以对配置要求比较高，起码得有个4060显卡感觉吧，后面我会写网络接口，可以给配置比较低的电脑使用。
-<br>
-登录的用户和密码都是: a，
-<br>
-[视频教程](https://www.bilibili.com/video/BV1sx2rBzEzK)，
-<br>
-doc文档里有扩展相关信息，
-<br>
-进入聊天界面，点击左上角的视频聊天按钮，可以进行语音聊天。
+- 上游项目：<https://github.com/bysq-2006/MAHO-Amadeus>
+- 上游作者/仓库所有者：`bysq-2006`
+- 本仓库为个人部署整理版本，包含云端 LLM 配置、TTS 性能与前端交互修复、一键启动脚本、上传前授权声明文件。
 
-## 选择角色：
-按照当前的说明配配置完成后：
-- 默认角色 MAHO 当前配置就是，直接用
-- 椎名真由理（Shiina Mayuri）版本配置说明见 [真由理版本配置指南](doc/may相关/真由理版本配置指南.md)
+截至 2026-05-24，上游仓库未发现根目录 `LICENSE` 文件。因此本仓库不声明上游代码、角色素材、模型、语音、图片或 Live2D 资源采用 MIT、Apache、GPL 等任何标准开源许可证。公开发布、再分发或商用前，请自行确认上游作者及相关权利方授权。
 
-本项目分为前端和后端和模型：
-- **前端**：基于 Vue 3，负责角色形象展示、聊天界面交互。
-- **后端**：基于 Python，负责对话逻辑、模型推理、数据处理等。
-- **模型**: 一堆堆的模型服务，看个人喜好。
+更多说明见：
 
-## ⚙️ 部署
+- [NOTICE.md](NOTICE.md)
+- [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
+- [GITHUB_UPLOAD_CHECKLIST.md](GITHUB_UPLOAD_CHECKLIST.md)
 
-### 🌐 前端部署 (Frontend)
-1. **环境准备**：安装 Node.js (推荐 v18+)。
-2. **安装依赖**：
-   ```bash
-   cd frontend
-   npm install
-   ```
-3. **启动开发服务器**：
-   ```bash
-   npm run dev
-   ```
-这里我是习惯直接从发服务器启动，你喜欢的话也可以自己编译出来用，具体的话去看vue教程。
+## 当前版本说明
 
-### 🐍 后端部署 (Backend)
-1. **环境准备**：安装 Python 3.10+。
-2. **安装依赖**：
-   ```bash
-   cd backend
-   pip install -r requirements.txt
-   ```
-3. **核心配置与扩展**：
-   项目后端采用**组件化架构**，LLM、TTS、翻译等核心功能均可自由切换。修改 `backend/config.yaml` 即可灵活配置：
-   核心代码位于backend\core\component\
-   
-   *   **模块化切换**：通过修改各板块的 `select` 字段（如 `ollama_api`, `gpt_sovits_api`）一键切换不同服务提供商。
-   *   **LLM 配置**：默认支持 Ollama，可扩展接入 OpenAI 兼容 API（如阿里云 DashScope、通义千问、DeepSeek 等）。只需修改 `select` 为 `openai_api` 并配置相应参数即可。
-   *   **TTS 配置**：支持 GPT-SoVITS，可配置参考音频、语速等。
-   *   **翻译配置**：支持多源切换（Ollama 本地大模型、百度 API、Argos 离线翻译、OpenAI 兼容 API）。
-   
-4. **启动服务**：
-   ```bash
-   python main.py
-   ```
+本版本默认配置：
 
-### 🤖 LLM
-[模型下载（基于qwen-14B微调）](https://www.modelscope.cn/models/bysq2006/maho-llm/files)
-下载qwen3-14b.Q4_K_M.gguf 和 Modelfile
-Modelfile 是用于配置和管理大语言模型（LLM）参数的文件，qwen3-14b.Q4_K_M.gguf是模型。下载后，你可以按照以下步骤使用：
+- LLM：DeepSeek `deepseek-chat`，通过 OpenAI 兼容接口调用。
+- TTS：Genie TTS，本地 ONNX 推理。
+- 翻译：通过 OpenAI 兼容接口翻译为日文后进入 TTS。
+- ASR/麦克风：默认关闭。
+- 本地大模型：不使用 Ollama，本地模型文件不纳入 Git。
 
-1. 将 `Modelfile` 文件与 `qwen3-14b.Q4_K_M.gguf` 放在同一目录下。
-2. 根据你的推理框架（如 Ollama、llama.cpp 等），在启动模型时指定 `Modelfile` 路径。例如，使用 Ollama 时可以运行：
+API Key 不写入仓库。请使用环境变量或本地密钥存储，例如：
 
-  ```bash
-  ollama create maho -f ./Modelfile
-  ```
-3. 打开一个终端输入 ollama serve
+```powershell
+$env:DEEPSEEK_API_KEY="你的 DeepSeek API Key"
+```
 
-确保 `Modelfile` 中的参数与你的模型文件和硬件环境相匹配。具体配置说明可参考 [Ollama 官方文档](https://github.com/jmorganca/ollama/blob/main/docs/modelfile.md) 或相关推理框架的文档。
+也可以在 Windows 用户环境变量里配置 `DEEPSEEK_API_KEY`。
 
+## 目录结构
 
-### 🔊 TTS
+```text
+.
+├── backend/                 # FastAPI 后端、对话逻辑、LLM/TTS/翻译组件
+│   ├── config.yaml           # 当前部署配置，API Key 字段保持为空
+│   ├── core/                 # 核心业务代码
+│   ├── data/                 # 参考音频、用户数据库等小型数据
+│   ├── models/               # 模型目录，仅保留 .gitkeep，真实模型不上传
+│   └── requirements.txt      # Python 依赖
+├── frontend/                # Vue 3 前端
+│   ├── public/               # 前端静态资源、Live2D 资源
+│   └── src/                  # 前端源码
+├── doc/                     # 上游与本地部署文档
+├── scripts/                 # Windows 启动/停止脚本
+├── 一键启动_MAHO.bat          # 一键启动前后端
+├── 一键停止_MAHO.bat          # 一键停止前后端
+├── 打开_MAHO网页.url           # 打开登录页
+├── 打开_MAHO主页.url           # 打开主页
+├── NOTICE.md                # 来源与版权边界声明
+└── THIRD_PARTY_NOTICES.md   # 第三方来源与许可证记录
+```
 
-#### 方法一（不推荐，太大了）
-[模型和环境下载](https://www.modelscope.cn/models/bysq2006/maho-tts/files)
-在里面下载GPT-SoVITS-v2pro-20250604.zip
-然后解压到喜欢的位置，
+不会上传的本地运行目录包括：
 
-这里面自带了运行时环境./runtime/python.exe
-解压好之后直接
+- `backend/.venv/`
+- `frontend/node_modules/`
+- `backend/models/` 下的真实模型文件
+- `.runtime/`
+- 日志、临时音频和运行时输出
 
-cd 你的解压路径\GPT-SoVITS-v2pro-20250604
-./runtime/python.exe api.py -s SoVITS_weights_v2Pro/maho_e8_s528.pth -g GPT_weights_v2Pro/maho-e15.ckpt
+## 快速启动
 
-即可启动本地TTS
+### 1. 安装依赖
 
-然后后端配置文件里面
-  gpt_sovits_api:
-    base_url: "http://127.0.0.1:9880"
-    refer_wav_path: "C:\\Users\\19045\\Desktop\\MAHO\\backend\\data\\TTS-audio\\激动.wav"
-refer_wav_path记得改成你的本地路径
+后端：
 
-#### 方法二 (推荐，轻量化ONNX推理)
-参考 [GENIETTS接口说明.md](doc/GENIETTS接口说明.md)
+```powershell
+cd backend
+python -m venv .venv
+.\.venv\Scripts\pip install -r requirements.txt
+```
 
-### 🌍 翻译 (Translator)
-本项目支持多种翻译方式，推荐使用 **本地 LLM (Ollama)** 以获得最佳的上下文理解能力，同时也支持 Argos（离线轻量）和 百度翻译 API。
+前端：
 
-#### 方案 A：本地 LLM 翻译（推荐，需双 Ollama 实例）
-这个翻译是因为TTS我是用的日文训练，所以回答必须先转成日文再进入TTS。
-为了避免翻译模型与聊天模型抢占显存导致频繁加载，建议开启第二个 Ollama 服务专门用于翻译。
+```powershell
+cd frontend
+npm install
+```
 
-1. **下载翻译模型**：
-   推荐使用 `qwen2.5:0.5b`，速度快且显存占用极低。
-   ```bash
-   ollama pull qwen2.5:0.5b
-   ```
+### 2. 下载 Genie TTS 模型
 
-2. **启动独立翻译服务**：
-   打开一个新的 PowerShell 窗口，运行以下命令在 **11435** 端口启动 Ollama：
-   ```powershell
-   $env:OLLAMA_HOST="127.0.0.1:11435"; ollama serve
-   ```
+按照 [doc/GENIETTS接口说明.md](doc/GENIETTS接口说明.md) 下载并放置模型文件。通常需要将以下目录放到 `backend/models/` 下：
 
-3. **修改配置**：
-   确保 `backend/config.yaml` 中的 `ollama_translator` 配置指向新端口：
-   ```yaml
-   translator:
-     select: ollama_translator
-     ollama_translator:
-       model: "qwen2.5:0.5b"
-       base_url: "http://localhost:11435"
-   ```
+- `TTS-maho/`
+- `GenieData/`
 
-其他翻译方法见 [翻译配置.md](doc/翻译配置.md)
+这些模型文件较大，且受来源平台条款约束，不应直接提交到 GitHub。
 
----
+### 3. 配置 DeepSeek
 
-🤝 欢迎 Star、Fork、提交 Issue 或 PR，一起完善 MAHO-Amadeus
+确认 [backend/config.yaml](backend/config.yaml) 使用：
 
----
+```yaml
+llm:
+  select: openai_api
+```
+
+并配置环境变量：
+
+```powershell
+setx DEEPSEEK_API_KEY "你的 DeepSeek API Key"
+```
+
+重新打开终端后生效。
+
+### 4. 一键启动
+
+双击根目录：
+
+```text
+一键启动_MAHO.bat
+```
+
+然后打开：
+
+- [http://127.0.0.1:5173/login](http://127.0.0.1:5173/login)
+- 默认登录用户和密码：`a` / `a`
+
+停止服务：
+
+```text
+一键停止_MAHO.bat
+```
+
+## 手动启动
+
+后端：
+
+```powershell
+cd backend
+.\.venv\Scripts\python.exe main.py
+```
+
+前端：
+
+```powershell
+cd frontend
+npm run dev
+```
+
+默认端口：
+
+- 后端：`http://127.0.0.1:8080`
+- 前端：`http://127.0.0.1:5173`
+
+## 上传 GitHub 前检查
+
+上传前请确认：
+
+```powershell
+git status --short
+git diff --check
+```
+
+不要提交：
+
+- API Key
+- 本地模型文件
+- Python 虚拟环境
+- `node_modules`
+- 日志和临时文件
+
+## 第三方组件
+
+主要第三方来源：
+
+- MAHO-Amadeus：<https://github.com/bysq-2006/MAHO-Amadeus>
+- Genie-TTS：<https://github.com/High-Logic/Genie-TTS>
+- MAHO TTS 模型说明：<https://www.modelscope.cn/models/bysq2006/maho-tts2/files>
+- DeepSeek API：<https://api.deepseek.com>
+
+完整记录见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
