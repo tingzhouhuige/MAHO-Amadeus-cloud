@@ -41,14 +41,12 @@ function Quote-Cmd([string]$value) {
 function Select-Role {
     if ($Role) {
         $role = $Role.Trim().ToLower()
-    } elseif ($env:MAHO_ROLE) {
-        $role = $env:MAHO_ROLE.Trim().ToLower()
     } else {
         Write-Host ""
         Write-Host "Select role:"
         Write-Host "  1. Maho"
         Write-Host "  2. Mayuri"
-        $choice = Read-Host "Enter 1 or 2; press Enter for Maho"
+        $choice = (Read-Host "Enter 1 or 2; press Enter for Maho").Trim()
         switch ($choice) {
             "2" { $role = "mayuri" }
             default { $role = "maho" }
