@@ -4,6 +4,12 @@
 
 本项目基于 [bysq-2006/MAHO-Amadeus](https://github.com/bysq-2006/MAHO-Amadeus) 整理，当前支持 **比屋定真帆** 与 **椎名真由理** 两个角色。对话由 DeepSeek API 生成，回复会经过翻译后交给 Genie TTS 合成角色语音，并配合 Live2D 立绘呈现在页面中。
 
+## 项目来源
+
+这个仓库不是从零开始的新作，而是对 `bysq-2006/MAHO-Amadeus` 的个人适配版本。原项目提供了 Vue 前端、Python 后端、Live2D 角色交互框架以及可替换的 LLM、TTS、翻译组件设计；本版本在其基础上改为云端 DeepSeek 对话，并加入双角色启动、真由理语音配置与 Windows 一键运行脚本。
+
+《命运石之门》角色及相关设定、角色立绘和语音素材的权利属于各自权利方。本项目仅作为非官方的学习与个人体验项目展示，不代表原作者、作品权利方、Live2D 或模型作者的官方发布或授权版本。
+
 ## 当前功能
 
 - 启动时选择真帆或真由理，不同角色拥有各自的立绘、声音与人物设定
@@ -99,11 +105,12 @@ doc/           组件与角色配置说明
 scripts/       启动与停止脚本
 ```
 
-## 致谢
+## 来源与许可
 
-- 原项目：[bysq-2006/MAHO-Amadeus](https://github.com/bysq-2006/MAHO-Amadeus)
-- Genie TTS：[High-Logic/Genie-TTS](https://github.com/High-Logic/Genie-TTS)
-- MAHO TTS 模型说明：[ModelScope / maho-tts2](https://www.modelscope.cn/models/bysq2006/maho-tts2/files)
-- DeepSeek API：[DeepSeek 开放平台](https://platform.deepseek.com/)
+- 项目代码基础来自 [bysq-2006/MAHO-Amadeus](https://github.com/bysq-2006/MAHO-Amadeus)。截至 2026 年 5 月 25 日，其公开仓库根目录未显示独立 `LICENSE` 文件；因此本仓库保留来源说明，不将上游代码声明为某种开源许可证授权内容。
+- 语音推理组件使用 [High-Logic/Genie-TTS](https://github.com/High-Logic/Genie-TTS)，其仓库标注为 MIT License。
+- 真帆语音模型入口来自 [ModelScope / maho-tts2](https://www.modelscope.cn/models/bysq2006/maho-tts2/files)；真由理语音模型下载入口记录在 [doc/may相关/真由理版本配置指南.md](doc/may相关/真由理版本配置指南.md)。模型及参考音频应按其原始来源的条款使用。
+- 页面运行依赖 Live2D Cubism Core；其许可条款见 [Live2D Proprietary Software License Agreement](https://www.live2d.com/eula/live2d-proprietary-software-license-agreement_en.html)。
+- 云端对话服务使用 [DeepSeek 开放平台](https://platform.deepseek.com/)。
 
-本仓库是在原项目基础上制作的个人适配版本，用于学习与交流。角色、立绘、语音模型及其他相关素材的权利归各自权利方所有；如需分发素材或用于其他用途，请遵守其原始授权与使用要求。补充来源记录见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+更完整的组件与素材记录见 [NOTICE.md](NOTICE.md) 和 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。公开分发或用于商业用途前，需要分别确认上游代码、角色素材、语音模型和 Live2D 运行组件的适用许可。
