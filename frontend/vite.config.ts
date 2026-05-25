@@ -9,6 +9,7 @@ export default defineConfig({
     vue(),
   ],
   resolve: {
+    preserveSymlinks: true,
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },

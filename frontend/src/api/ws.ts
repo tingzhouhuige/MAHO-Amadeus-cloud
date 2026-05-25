@@ -1,4 +1,4 @@
-import config from '../config.json'
+import { runtimeConfig } from '../runtimeConfig'
 
 type MessageHandler = (data: any) => void
 type EventHandler = () => void
@@ -12,7 +12,7 @@ export class MahoWebSocket {
   private eventHandlers: Map<string, EventHandler[]> = new Map()
 
   constructor() {
-    this.url = `ws://${config.ip}:8080/ws`
+    this.url = `ws://${runtimeConfig.ip}:8080/ws`
     this.connect()
   }
 

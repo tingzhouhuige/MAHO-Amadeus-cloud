@@ -26,7 +26,7 @@
 import SpritePlayer from '../component/SpritePlayer.vue'
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import config from '../config.json'
+import { runtimeConfig } from '../runtimeConfig'
 import loginMp3 from '@/assets/login/login.mp3'
 import spriteLogo from '@/assets/sprite/sprite_logo.png'
 import loginButton from '@/assets/login/login_button.png'
@@ -48,7 +48,7 @@ onMounted(() => {
 
 async function login() {
   try {
-    const response = await fetch(`http://${config.ip}:8080/api/login`, {
+    const response = await fetch(`http://${runtimeConfig.ip}:8080/api/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

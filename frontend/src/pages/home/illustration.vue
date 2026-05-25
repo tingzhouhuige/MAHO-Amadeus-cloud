@@ -8,7 +8,7 @@ import * as PIXI from 'pixi.js'
 import * as TWEEN from '@tweenjs/tween.js'
 import { useHomeStore } from '@/stores/home'
 import { storeToRefs } from 'pinia'
-import config from '@/config.json'
+import { runtimeConfig } from '@/runtimeConfig'
 
 const homeStore = useHomeStore()
 const { mouthOpen } = storeToRefs(homeStore)
@@ -67,7 +67,7 @@ onMounted(async () => {
     listeners = []
 
     // 加载 Cubism 4 模型
-    const model = await Live2DModel.from(config.modelPath, {
+    const model = await Live2DModel.from(runtimeConfig.modelPath, {
       autoInteract: autoInteractEnabled
     })
     model.scale.set(0.4)

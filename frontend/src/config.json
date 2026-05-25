@@ -1,5 +1,14 @@
 {
   "ip": "127.0.0.1",
-  "amadeusName": "比屋定真帆",
-  "modelPath": "/maho-l2d/maho.model3.json"
+  "selectedRole": "maho",
+  "roles": {
+    "maho": {
+      "amadeusName": "比屋定真帆",
+      "modelPath": "/maho-l2d/maho.model3.json"
+    },
+    "mayuri": {
+      "amadeusName": "椎名真由理",
+      "modelPath": "/MAY-l2d/MAY-live2d.model3.json"
+    }
+  }
 }

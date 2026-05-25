@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import config from '../config.json'
+import { runtimeConfig } from '../runtimeConfig'
 import { MahoWebSocket } from '../api/ws'
 
 export const useHomeStore = defineStore('home', () => {
@@ -18,7 +18,7 @@ export const useHomeStore = defineStore('home', () => {
   
   // 用户名
   const userName = ref(localStorage.getItem('username') || '未命名')
-  const amadeusName = ref(config.amadeusName || '比屋定真帆')
+  const amadeusName = ref(runtimeConfig.amadeusName || '比屋定真帆')
   const currentName = ref(userName.value)
 
 
